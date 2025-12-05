@@ -14,6 +14,8 @@ int validateMove(char *m);
 int main(){
     Board *board = createBoard();
     boardInit(board);
+    updateDisplay(board);
+    printDisplay(board);
     return 0;
 }
 void addMove(){

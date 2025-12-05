@@ -6,22 +6,27 @@
 #include "ArrayList.h"
 
 static const char *pieceNames = "rhbqkpRHBQKP";
+void printPieceArray(ArrayList *list){
+    printf("[");
+    for(int ind=0; ind<list->length; ind++){
+        printf("'%c'", ((Piece*)list->arr[ind])->name);
+        if(ind<list->length-1) printf(",");
+    }
+    printf("]\n");
+}
 Piece *createPiece(char name){
-    Piece *piece = malloc(sizeof(int) + sizeof(char));
+    Piece *piece = malloc(sizeof(Piece));
     piece->name = name;
     piece->pos = -1;
     return piece;
 }
-
 ArrayList *createPieces(char *names){
     ArrayList *list = createArrayList();
-    int len = strlen(names);
-    int ind = 0;
-    while(names[ind]){
+    list->print = printPieceArray;
+    for(int ind=0; names[ind]; ind++){
         if(isValidName(names[ind])){
             listAdd(list, createPiece(names[ind]));
         }
-        ind++;
     }
     return list;
 }

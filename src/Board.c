@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 Board *createBoard(void){
-    Board *board = malloc(sizeof(Piece**) + sizeof(int));
+    Board *board = malloc(sizeof(Board));
     board->board = calloc(64, sizeof(Piece*));
     board->display = calloc(17 * 34, sizeof(char));
     board->state = FREE;
@@ -33,17 +33,15 @@ void boardInit(Board *board){
         boardSet(board, createPiece('p'), 1, ind);
         boardSet(board, createPiece('P'), 6, ind);
     }
-    updateDisplay(board);
-    printDisplay(board);
     char *pieceStr = "rhbqkbhrRHBQKBHR";
     ArrayList *pieces = createPieces(pieceStr);
-    printf("%d\n", pieces->length);
+    pieces->print(pieces);
     for(int ind=0; ind<16; ind++){
-        printf("%d\n", ind);
         if(ind<8) boardSet(board, pieces->arr[ind], 0, ind);
         else  boardSet(board, pieces->arr[ind], 7, ind-8);
     }
-    //STILL NEED TO FREE TEMP PIECE ARRAY
+    destroyArrayList(pieces, 0);
+    pieces = NULL;
 }
 //converts y,x into pos index for a one dim board array
 int getPos(int y, int x){
@@ -69,7 +67,7 @@ void initDisplay(Board *board){
             else if(y%2==1 && x==0) board->display[y*34+x] = (char) ('8' - y/2);
             else if(y==16 && x%4==2) board->display[y*34+x] = (char) ('a' + x/4);
             else if(x%4==0) board->display[y*34+x] = '|';
-            else if((((y/2)%2 + x/4))%2 == 0) board->display[y*34+x] = (char) 219;
+            else if((((y/2)%2 + x/4))%2 == 0) board->display[y*34+x] = ':';
             else board->display[y*34+x] = ' ';
         }
     }

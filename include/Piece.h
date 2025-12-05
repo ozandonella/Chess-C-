@@ -9,6 +9,7 @@ typedef struct {
 
 static const char *pieceNames;
 
+void printPieceArray(ArrayList *list);
 Piece *createPiece(char name);
 ArrayList *createPieces(char *names);
 int isValidName(char name);
