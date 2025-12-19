@@ -2,7 +2,10 @@
 #define BOARD_H
 #include "Piece.h"
 typedef enum {FREE, CHECK, CHECKMATE, STALE} GameState;
-typedef struct {
+
+typedef struct Piece Piece;
+
+typedef struct Board {
    Piece **board;
    char *display;
    GameState state;

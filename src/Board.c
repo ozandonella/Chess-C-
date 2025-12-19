@@ -24,6 +24,7 @@ int boardSet(Board *board, Piece *piece, const int y, const int x){
     assert(piece==NULL || board->board[pos]==NULL);
     if(piece != NULL) piece->pos = pos;
     board->board[pos] = piece;
+    piece->canMove(piece, 4, board);
     return 0;
 }
 
