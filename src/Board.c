@@ -1,14 +1,23 @@
-#include "ArrayList.h"
-#include "Board.h"
-#include "Piece.h"
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include "ArrayList.h"
+#include "Board.h"
+#include "Piece.h"
+
+static const char pieceStr[] = {
+    'r', 'h', 'b', 'q', 'k', 'b', 'h', 'r', 
+    'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p',
+    'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P',
+    'R', 'H', 'B', 'Q', 'K', 'B', 'H', 'R'
+};
 
 Board *createBoard(void){
     Board *board = malloc(sizeof(Board));
     board->board = calloc(64, sizeof(Piece*));
+    board->pieceList = malloc(sizeof(ArrayList));
     board->display = calloc(17 * 34, sizeof(char));
+    board->pieceList = NULL;
     board->state = FREE;
     return board;
 }
@@ -24,33 +33,33 @@ int boardSet(Board *board, Piece *piece, const int y, const int x){
     assert(piece==NULL || board->board[pos]==NULL);
     if(piece != NULL) piece->pos = pos;
     board->board[pos] = piece;
-    piece->canMove(piece, 4, board);
     return 0;
 }
 
 void boardInit(Board *board){
-    //rhbqkpRHBQKP
-    for(int ind=0; ind<8; ind++){
-        boardSet(board, createPiece('p'), 1, ind);
-        boardSet(board, createPiece('P'), 6, ind);
+    board->pieceList = createPieces(pieceStr);
+    board->pieceList->print(board->pieceList);
+    for(int ind=0; ind<32; ind++){
+        if(ind<16) boardSet(board, board->pieceList->arr[ind], ind/8, ind%8);
+        else  boardSet(board, board->pieceList->arr[ind], 4+ind/8, ind%8);
     }
-    char *pieceStr = "rhbqkbhrRHBQKBHR";
-    ArrayList *pieces = createPieces(pieceStr);
-    pieces->print(pieces);
-    for(int ind=0; ind<16; ind++){
-        if(ind<8) boardSet(board, pieces->arr[ind], 0, ind);
-        else  boardSet(board, pieces->arr[ind], 7, ind-8);
-    }
-    destroyArrayList(pieces, 0);
-    pieces = NULL;
 }
 //converts y,x into pos index for a one dim board array
 int getPos(int y, int x){
-    assert(y<=7 && y>=0 && x<=7 && x>=0);
+    assert(validTwoD(y,x));
     return y*8 + x;
 }
+
+int validOneD(int pos){
+    return pos>=0 && pos<64 ? 1 : 0;
+}
+
+int validTwoD(int y, int x){
+    return (y<=7 && y>=0 && x<=7 && x>=0) ? 1 : 0;
+}
+
 int getDisplayPos(int y, int x){
-    assert(y<=7 && y>=0 && x<=7 && x>=0);
+    assert(validTwoD(y,x));
     return y*2*34+34 + x*4+1;
 }
     

@@ -1,13 +1,10 @@
 #ifndef ARRAYLIST_H
 #define ARRAYLIST_H
-#include "Comparator"
-
-typedef struct ArrayList ArrayList;
-typedef void (*PrintFunc)(ArrayList *list);
+#include "def.h"
 
 struct ArrayList{
     void **arr;
-    Comparator *compareItem
+    Comparator compareItem;
     PrintFunc print;
     unsigned length;
     unsigned capacity;

@@ -2,10 +2,8 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-#include "ArrayList.h"
+#include "def.h"
 #include "Board.h"
-#include "Piece.h"
-
 int moveStringSize = 0;
 char *moveString;
 void addMove();
