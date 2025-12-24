@@ -34,19 +34,23 @@ Board *createBoard(void){
 //Sets position on board to specified piece
 //piece can be null to 'clear' a position on the board
 //Side effect: sets piece's pos to specified new pos
+//also sets cleared pieces to -1
 int boardSetTwoD(Board *board, Piece *piece, const int y, const int x){
     boardSet(board, piece, getPos(y, x));
 }
 int boardSet(Board *board, Piece *piece, int pos){
     assert(piece==NULL || board->board[pos]==NULL);
-    if(piece != NULL) piece->pos = pos;
+    if(piece != NULL) piece->pos = pos; 
+    else{
+        assert(board->board[pos]);
+        board->board[pos]->pos = -1;
+    }
     board->board[pos] = piece;
     return 0;
 }
 
 void boardInit(Board *board){
     board->pieceList = createPieces(pieceStr);
-    board->pieceList->print(board->pieceList);
     for(int ind=0; ind<32; ind++){
         if(ind<16) boardSet(board, board->pieceList->arr[ind], ind);
         else  boardSet(board, board->pieceList->arr[ind], ind+32);
@@ -76,12 +80,16 @@ int moveForward(Board *board, int ind){
     const int *before = board->currMove->before;
     const int *after = board->currMove->after;
     while(board->currMove->pieceList[i]){
-        if(before[i] != -1) boardSet(board, NULL, before[i++]);
+        if(before[i] != -1) boardSet(board, NULL, before[i]);
+        i++;
     }
     i = 0;
     while(board->currMove->pieceList[i]){
-        if(after[i] != -1) boardSet(board, board->currMove->pieceList[i], after[i++]);
+        printf("after: %d\n", after[0]);
+        if(after[i] != -1) boardSet(board, board->currMove->pieceList[i], after[i]);
+        i++;
     }
+    board->currMove->pieceList[0]->moveCount++;
     return 1;
 }
 int moveBackward(Board *board){
@@ -93,12 +101,15 @@ int moveBackward(Board *board){
     const int *before = board->currMove->before;
     const int *after = board->currMove->after;
     while(board->currMove->pieceList[i]){
-        if(after[i] != -1) boardSet(board, NULL, after[i++]);
+        if(after[i] != -1) boardSet(board, NULL, after[i]);
+        i++;
     }
     i = 0;
     while(board->currMove->pieceList[i]){
-        if(before[i] != -1) boardSet(board, board->currMove->pieceList[i], before[i++]);
+        if(before[i] != -1) boardSet(board, board->currMove->pieceList[i], before[i]);
+        i++;
     }
+    board->currMove->pieceList[0]->moveCount--;
     board->currMove = board->currMove->prev;
     return 1;
 }

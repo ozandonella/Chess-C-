@@ -109,7 +109,7 @@ int hasAttackers(int pos, int color, Board* board){
                 if(piece->name == 'p'|| piece->name == 'P')
                     return getColor(piece)*pattern[0] < 0 && pattern[1] != 0;
                 if(piece->name != 'k' && piece->name != 'K')
-                    return abs(pattern[1] == 1);
+                    return abs(pattern[1])==1;
                 return 1;
             }
         }
@@ -174,6 +174,7 @@ int checkCastle(Piece *king, const int *pattern, Board *board){
 int checkPawnCapture(Piece *pawn, const int *pattern, Board *board){
     Piece *destPiece = board->board[pawn->pos + pattern[0]*8 + pattern[1]];
     if(destPiece) return getColor(destPiece) != getColor(pawn);
+    if(!board->currMove->prev) return 0; //Game start
     Piece *capture = board->currMove->pieceList[0];
     return (capture->name == 'p' || capture->name == 'P') &&
         (pawn->pos + pattern[1] == board->currMove->after[0]);
@@ -181,11 +182,12 @@ int checkPawnCapture(Piece *pawn, const int *pattern, Board *board){
 
 int canMovePawn(Piece *piece, int dest, Board *board){
     assert(piece->name == 'p' || piece->name == 'P');
-    int pInd = matchPattern(piece, dest);
-    if(pInd == -1) return 0;
-    const int *pattern = piece->pieceFunction->movePattern->dists[pInd];
+    int pind = matchPattern(piece, dest);
+    if(pind == -1) return 0;
+    const int *pattern = piece->pieceFunction->movePattern->dists[pind];
     if(getColor(piece)*pattern[0] > 0) return 0;
     if(abs(pattern[0]) > 1 && (piece->moveCount || board->board[piece->pos + pattern[0]*4])) return 0;
+
     //at this point pawn is moving to a legal square in the right direction without jumping over anything
     if(pattern[1] != 0 && !checkPawnCapture(piece, pattern, board)) return 0;
     if(pattern[1] == 0 && board->board[piece->pos + pattern[0]*8]) return 0;
@@ -237,12 +239,14 @@ int canMoveKing(Piece *piece, int dest, Board *board){
     return 1;
 }
 
+ArrayList *genAllMoves(Piece *piece, Board *board){
+    return NULL;
+}
 //ALL GEN MOVES ASSUME CAN MOVE HAS BEEN ASSERTED
-//pawn gen will not handle premotion that will be done at some point later
+//pawn gen will not handle premotion that will be done at some later point
 MoveNode *genMovePawn(Piece *piece, int dest, Board *board){
     MoveNode *move = createMoveNode();
     addNodePiece(move, piece, piece->pos, dest, 0);
-    printf("piece after function: %c\n", move->pieceList[0]->name);
     int x = dest&7 - piece->pos&7;
     if(x){
         Piece *capture = board->board[dest] ? board->board[dest] : board->board[piece->pos+x];
@@ -251,22 +255,36 @@ MoveNode *genMovePawn(Piece *piece, int dest, Board *board){
     return move;
 }
 MoveNode *genMoveRook(Piece *piece, int dest, Board *board){
-    assert(piece->name == 'r' || piece->name == 'R');
-    return NULL;
+    MoveNode *move = createMoveNode();
+    addNodePiece(move, piece, piece->pos, dest, 0);
+    if(board->board[dest]) addNodePiece(move, piece, piece->pos, dest, 1);
+    return move;
 }
 MoveNode *genMoveHorse(Piece *piece, int dest, Board *board){
-    printf("moving horse\n");
-    return NULL;
+    MoveNode *move = createMoveNode();
+    addNodePiece(move, piece, piece->pos, dest, 0);
+    if(board->board[dest]) addNodePiece(move, piece, piece->pos, dest, 1);
+    return move;
 }
 MoveNode *genMoveBishop(Piece *piece, int dest, Board *board){
-    printf("moving bishop\n");
-    return NULL;
+    MoveNode *move = createMoveNode();
+    addNodePiece(move, piece, piece->pos, dest, 0);
+    if(board->board[dest]) addNodePiece(move, piece, piece->pos, dest, 1);
+    return move;
 }
 MoveNode *genMoveQueen(Piece *piece, int dest, Board *board){
-    printf("moving Queen\n");
-    return NULL;
+    MoveNode *move = createMoveNode();
+    addNodePiece(move, piece, piece->pos, dest, 0);
+    if(board->board[dest]) addNodePiece(move, piece, piece->pos, dest, 1);
+    return move;
 }
 MoveNode *genMoveKing(Piece *piece, int dest, Board *board){
-    printf("moving King\n");
-    return NULL;
+    MoveNode *move = createMoveNode();
+    addNodePiece(move, piece, piece->pos, dest, 0);
+    if(board->board[dest]) addNodePiece(move, piece, piece->pos, dest, 1);
+    int x = dest&7 - piece->pos&7;
+    if(abs(x)>1){
+        //add rook
+    }
+    return move;
 }
