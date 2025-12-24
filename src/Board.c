@@ -1,7 +1,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 #include "ArrayList.h"
+#include "MoveTree.h"
 #include "Board.h"
 #include "Piece.h"
 
@@ -18,6 +20,10 @@ Board *createBoard(void){
     board->pieceList = malloc(sizeof(ArrayList));
     board->display = calloc(17 * 34, sizeof(char));
     board->pieceList = NULL;
+    board->gameStart = createMoveNode();
+    board->currMove = board->gameStart;
+    char *name = "game";
+    strcpy(board->gameStart->name, name);
     board->state = FREE;
     return board;
 }
@@ -28,8 +34,10 @@ Board *createBoard(void){
 //Sets position on board to specified piece
 //piece can be null to 'clear' a position on the board
 //Side effect: sets piece's pos to specified new pos
-int boardSet(Board *board, Piece *piece, const int y, const int x){
-    int pos = getPos(y, x);
+int boardSetTwoD(Board *board, Piece *piece, const int y, const int x){
+    boardSet(board, piece, getPos(y, x));
+}
+int boardSet(Board *board, Piece *piece, int pos){
     assert(piece==NULL || board->board[pos]==NULL);
     if(piece != NULL) piece->pos = pos;
     board->board[pos] = piece;
@@ -40,8 +48,8 @@ void boardInit(Board *board){
     board->pieceList = createPieces(pieceStr);
     board->pieceList->print(board->pieceList);
     for(int ind=0; ind<32; ind++){
-        if(ind<16) boardSet(board, board->pieceList->arr[ind], ind/8, ind%8);
-        else  boardSet(board, board->pieceList->arr[ind], 4+ind/8, ind%8);
+        if(ind<16) boardSet(board, board->pieceList->arr[ind], ind);
+        else  boardSet(board, board->pieceList->arr[ind], ind+32);
     }
 }
 //converts y,x into pos index for a one dim board array
@@ -56,6 +64,43 @@ int validOneD(int pos){
 
 int validTwoD(int y, int x){
     return (y<=7 && y>=0 && x<=7 && x>=0) ? 1 : 0;
+}
+//currMove must have children nodes
+int moveForward(Board *board, int ind){
+    assert(board->currMove);
+    assert(board->gameStart);
+    if(!board->currMove->children) return 0;
+    assert(ind < board->currMove->children->length);
+    board->currMove = board->currMove->children->arr[ind];
+    int i = 0;
+    const int *before = board->currMove->before;
+    const int *after = board->currMove->after;
+    while(board->currMove->pieceList[i]){
+        if(before[i] != -1) boardSet(board, NULL, before[i++]);
+    }
+    i = 0;
+    while(board->currMove->pieceList[i]){
+        if(after[i] != -1) boardSet(board, board->currMove->pieceList[i], after[i++]);
+    }
+    return 1;
+}
+int moveBackward(Board *board){
+    assert(board->currMove);
+    assert(board->gameStart);
+    if(board->currMove == board->gameStart) return 0;
+    assert(board->currMove->prev);
+    int i = 0;
+    const int *before = board->currMove->before;
+    const int *after = board->currMove->after;
+    while(board->currMove->pieceList[i]){
+        if(after[i] != -1) boardSet(board, NULL, after[i++]);
+    }
+    i = 0;
+    while(board->currMove->pieceList[i]){
+        if(before[i] != -1) boardSet(board, board->currMove->pieceList[i], before[i++]);
+    }
+    board->currMove = board->currMove->prev;
+    return 1;
 }
 
 int getDisplayPos(int y, int x){

@@ -14,6 +14,7 @@ ArrayList *createArrayList(void){
     return list;
 }
 void destroyArrayList(ArrayList *list, int destroyContents){
+    if(!list) return;
     if(destroyContents){
         for(int ind=0; ind<list->length; ind++){
             free(list->arr[ind]);

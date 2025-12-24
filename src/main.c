@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-#include "def.h"
 #include "Board.h"
+#include "Piece.h"
+#include "MoveTree.h"
 int moveStringSize = 0;
 char *moveString;
 void addMove();
@@ -14,6 +15,21 @@ int main(){
     boardInit(board);
     updateDisplay(board);
     printDisplay(board);
+    Piece *piece = board->board[8];
+    printf("name:%c pos:%d\n",piece->name, piece->pos);
+    for(int i=0; i<64; i++){
+       CanMove canMove = piece->pieceFunction->canMove;
+       GenMove genMove = piece->pieceFunction->genMove;
+       if(canMove(piece, i, board)){
+           MoveNode *move = genMove(piece, i, board);
+           genMoveName(move);
+           printf("piece: %s\n", move->pieceList[0]);
+           printf("name: %c, before: %d, after: %d\n", move->pieceList[0]->name, move->before[0], move->after[0]);
+           addNode(board->currMove, move);
+           printMoveArray(board->currMove->children);
+       }
+    }
+
     return 0;
 }
 void addMove(){
