@@ -21,7 +21,9 @@ Piece *createPiece(char name){
     Piece *piece = malloc(sizeof(Piece));
     piece->name = name;
     piece->pos = -1;
+    piece->moveCount = 0;
     piece->pieceFunction = getPieceFunction(piece->name); 
+    piece->promotions = (name == 'p' || name =='P') ? calloc(3, sizeof(Piece*)) : NULL;
     return piece;
 }
 int getColor(Piece *piece){
@@ -182,6 +184,7 @@ int checkPawnCapture(Piece *pawn, const int *pattern, Board *board){
 
 int canMovePawn(Piece *piece, int dest, Board *board){
     assert(piece->name == 'p' || piece->name == 'P');
+    if(!validOneD(dest)) return 0;
     int pind = matchPattern(piece, dest);
     if(pind == -1) return 0;
     const int *pattern = piece->pieceFunction->movePattern->dists[pind];
@@ -196,6 +199,7 @@ int canMovePawn(Piece *piece, int dest, Board *board){
 }
 int canMoveRook(Piece *piece, int dest, Board *board){
     assert(piece->name == 'r' || piece->name == 'R');
+    if(!validOneD(dest)) return 0;
     int pInd = matchPattern(piece, dest);
     if(pInd == -1) return 0;
     const int *pattern = piece->pieceFunction->movePattern->dists[pInd];
@@ -205,6 +209,7 @@ int canMoveRook(Piece *piece, int dest, Board *board){
 }
 int canMoveHorse(Piece *piece, int dest, Board *board){
     assert(piece->name == 'h' || piece->name == 'H');
+    if(!validOneD(dest)) return 0;
     int pInd = matchPattern(piece, dest);
     if(pInd == -1) return 0;
     const int *pattern = piece->pieceFunction->movePattern->dists[pInd];
@@ -213,6 +218,7 @@ int canMoveHorse(Piece *piece, int dest, Board *board){
 }
 int canMoveBishop(Piece *piece, int dest, Board *board){
     assert(piece->name == 'b' || piece->name == 'B');
+    if(!validOneD(dest)) return 0;
     int pInd = matchPattern(piece, dest);
     if(pInd == -1) return 0;
     const int *pattern = piece->pieceFunction->movePattern->dists[pInd];
@@ -221,6 +227,7 @@ int canMoveBishop(Piece *piece, int dest, Board *board){
 }
 int canMoveQueen(Piece *piece, int dest, Board *board){
     assert(piece->name == 'q' || piece->name == 'Q');
+    if(!validOneD(dest)) return 0;
     int pInd = matchPattern(piece, dest);
     if(pInd == -1) return 0;
     const int *pattern = piece->pieceFunction->movePattern->dists[pInd];
@@ -229,6 +236,7 @@ int canMoveQueen(Piece *piece, int dest, Board *board){
 }
 int canMoveKing(Piece *piece, int dest, Board *board){
     assert(piece->name == 'k' || piece->name == 'K');
+    if(!validOneD(dest)) return 0;
     int pInd = matchPattern(piece, dest);
     if(pInd == -1) return 0;
     const int *pattern = piece->pieceFunction->movePattern->dists[pInd];
@@ -238,9 +246,71 @@ int canMoveKing(Piece *piece, int dest, Board *board){
     else if(!canReach(piece, pattern, dest, board)) return 0; 
     return 1;
 }
+//returns index in move pieceList where the promoted piece was added
+//adds promotion to board pieceList
+//assumes move is a valid promotion move where pieceList[0] == pawn and after[0] lies on promotion rank
+int promotePawnMove(MoveNode* move, char name, Board* board){
+    assert(name == 'h' || name == 'H' || name == 'q' || name == 'Q');
+    assert(move->pieceList[0]->promotions);
+    Piece *promo = NULL;
+    int ind = (name == 'h' || name == 'H') ? 0 : 1;
+    if(!move->pieceList[0]->promotions[ind]){
+        move->pieceList[0]->promotions[ind] = createPiece(name);
+        listAdd(board->pieceList, promo);
+    }
+    promo = move->pieceList[0]->promotions[ind];
+    ind = 0;
+    move->after[0] = -1; //pawn removed from board
+    while(move->pieceList[ind++]); //find open index
+    addNodePiece(move, promo, -1, move->after[0], ind);
+    assert(ind);
+    return ind;
+}
+//assumes move is a pawnMove
+int checkForPromotion(MoveNode* pawnMove){
+    assert(pawnMove->pieceList[0]->name == 'p' || pawnMove->pieceList[0]->name == 'P');
+    return (pawnMove->after>=0 && pawnMove->after[0] < 8) || pawnMove->after[0] > 55;
+}
 
-ArrayList *genAllMoves(Piece *piece, Board *board){
-    return NULL;
+//generates all moves for piece and returns them
+MoveNode **genAllMoves(Piece *piece, Board *board){
+    assert(piece->pos != -1);
+    int ind = 0;
+    MoveNode **moves = calloc(30, sizeof(MoveNode*)); 
+    CanMove canMove = piece->pieceFunction->canMove;
+    GenMove genMove = piece->pieceFunction->genMove;
+    //Testing
+    for(int i=0; i<63; i++) if(canMove(piece, i, board)) moves[ind++] = genMove(piece, i, board);
+    //Testing
+    /*
+    const MovePattern* movePattern = piece->pieceFunction->movePattern;
+    for(int i=0; i<movePattern->moveCount; i++){
+        int dist = 8*movePattern->dists[i][0] + movePattern->dists[i][1];
+        int dest = piece->pos + dist;
+        if(canMove(piece, dest, board)){
+            moves[ind++] = genMove(piece, dest, board);
+            if(movePattern->doesRep){
+                dest+=dist;
+                while(canMove(piece, dest, board))
+                    moves[ind++] = genMove(piece, dest+=dist, board);
+            }
+        }
+    }
+    */
+    //If generating pawn moves modify any existing promotion moves to queen and add horse
+    if(piece->name == 'p' || piece->name == 'P'){
+        for(int i=0; moves[i]; i++){
+            if(checkForPromotion(moves[i])){
+                MoveNode* currMove = moves[i];
+                MoveNode *horsePromo = genMovePawn(piece, currMove->after[0], board);
+                int color = getColor(piece);
+                promotePawnMove(horsePromo, color == -1 ? 'H' : 'h', board);
+                promotePawnMove(currMove, color == -1 ? 'Q' : 'q', board);
+                moves[ind++] = horsePromo;
+            }
+        }
+    }
+    return moves;
 }
 //ALL GEN MOVES ASSUME CAN MOVE HAS BEEN ASSERTED
 //pawn gen will not handle premotion that will be done at some later point
@@ -252,30 +322,35 @@ MoveNode *genMovePawn(Piece *piece, int dest, Board *board){
         Piece *capture = board->board[dest] ? board->board[dest] : board->board[piece->pos+x];
         addNodePiece(move, capture, capture->pos, -1, 1);
     }
+    genMoveName(move);
     return move;
 }
 MoveNode *genMoveRook(Piece *piece, int dest, Board *board){
     MoveNode *move = createMoveNode();
     addNodePiece(move, piece, piece->pos, dest, 0);
     if(board->board[dest]) addNodePiece(move, piece, piece->pos, dest, 1);
+    genMoveName(move);
     return move;
 }
 MoveNode *genMoveHorse(Piece *piece, int dest, Board *board){
     MoveNode *move = createMoveNode();
     addNodePiece(move, piece, piece->pos, dest, 0);
     if(board->board[dest]) addNodePiece(move, piece, piece->pos, dest, 1);
+    genMoveName(move);
     return move;
 }
 MoveNode *genMoveBishop(Piece *piece, int dest, Board *board){
     MoveNode *move = createMoveNode();
     addNodePiece(move, piece, piece->pos, dest, 0);
     if(board->board[dest]) addNodePiece(move, piece, piece->pos, dest, 1);
+    genMoveName(move);
     return move;
 }
 MoveNode *genMoveQueen(Piece *piece, int dest, Board *board){
     MoveNode *move = createMoveNode();
     addNodePiece(move, piece, piece->pos, dest, 0);
     if(board->board[dest]) addNodePiece(move, piece, piece->pos, dest, 1);
+    genMoveName(move);
     return move;
 }
 MoveNode *genMoveKing(Piece *piece, int dest, Board *board){
@@ -286,5 +361,6 @@ MoveNode *genMoveKing(Piece *piece, int dest, Board *board){
     if(abs(x)>1){
         //add rook
     }
+    genMoveName(move);
     return move;
 }

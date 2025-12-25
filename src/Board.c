@@ -139,12 +139,36 @@ void initDisplay(Board *board){
     }
     board->display[34*17] = '\0';
 }
+void drawMove(Board *board, MoveNode* move){
+    int pos=move->before[0], dest=move->after[0], i=1;
+    while(dest != -1) dest = move->after[i++];
+    assert(dest>-1 && dest<64);
+    int xPos = pos&7, yPos = pos>>3;
+    char a = '#', b = '#', c = '#';
+    setDisplay(board, yPos, xPos, a, b, c);
+    int xDest = dest&7, yDest = dest>>3;
+    a = '*', b = '*', c = '*';
+    setDisplay(board, yDest, xDest, a, b, c);
+    if(!move->pieceList[0]->pieceFunction->movePattern->doesRep) return;
+    int x = (xDest-xPos), y = (yDest-yPos);
+    if(x) x/=abs(xDest-xPos);
+    if(y) y/=abs(yDest-yPos);
+    xPos += x;
+    yPos += y;
+    while(xPos != xDest && yPos != yDest){
+        a = '=', b = '=', c = '=';
+        setDisplay(board, yPos+=y, xPos+=x, a, b, c);
+    }
+}
+
+
+    
 //Init Display (redraw board squares)
 //Draw Move stuct (to show what happend)
 //Draw pieces
-void updateDisplay(Board *board){
+void updateDisplay(Board *board, int displayMove){
     initDisplay(board);
-    //Draw Move
+    if(displayMove) drawMove(board, board->currMove);
     for(int y=0; y<8; y++){
         for(int x=0; x<8; x++){
             Piece *piece = board->board[getPos(y,x)];

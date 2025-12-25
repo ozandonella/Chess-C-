@@ -14,6 +14,7 @@ struct PieceFunction {
 
 struct Piece {
     PieceFunction *pieceFunction;
+    Piece **promotions;
     int pos;
     char name;
     int moveCount;
@@ -32,7 +33,9 @@ MoveNode *genMoveHorse(Piece *piece, int dest, Board *board);
 MoveNode *genMoveBishop(Piece *piece, int dest, Board *board);
 MoveNode *genMoveQueen(Piece *piece, int dest, Board *board);
 MoveNode *genMoveKing(Piece *piece, int dest, Board *board);
-ArrayList *genAllMoves(Piece *piece, Board *board);
+int promotePawnMove(MoveNode* move, char name, Board* board);
+int checkForPromotion(MoveNode* pawnMove);
+MoveNode **genAllMoves(Piece *piece, Board *board);
 int matchPattern(Piece *piece, int dest);
 int canReach(Piece *piece, const int *pattern, int dest, Board* board);
 int hasAttackers(int pos, int color, Board* board);

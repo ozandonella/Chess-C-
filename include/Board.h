@@ -23,8 +23,9 @@ int getPos(int y, int x);
 int validTwoD(int y, int x);
 int validOneD(int pos);
 void setDisplay(Board *board, int y, int x, char a, char b, char c);
-void updateDisplay(Board *board);
+void updateDisplay(Board *board, int displayMove);
 void initDisplay(Board *board);
 void printDisplay(Board *board);
+void drawMove(Board *board, MoveNode* move);
 #endif
     

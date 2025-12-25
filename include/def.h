@@ -1,5 +1,6 @@
 #ifndef DEF_H
 #define DEF_H
+typedef struct Game Game;
 typedef struct Board Board;
 typedef enum {FREE, CHECK, CHECKMATE, STALE} GameState;
 typedef struct ArrayList ArrayList;
