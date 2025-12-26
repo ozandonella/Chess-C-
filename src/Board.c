@@ -22,6 +22,7 @@ Board *createBoard(void){
     board->pieceList = NULL;
     board->gameStart = createMoveNode();
     board->currMove = board->gameStart;
+    board->moveTotal = 0;
     char *name = "game";
     strcpy(board->gameStart->name, name);
     board->state = FREE;
@@ -30,6 +31,9 @@ Board *createBoard(void){
 //[1,2,3]
 //[4,5,6]
 //[7,8,9]
+int getTurn(Board *board){
+    return (board->moveTotal&1) == 0 ? -1 : 1;
+}
 
 //Sets position on board to specified piece
 //piece can be null to 'clear' a position on the board
@@ -39,6 +43,7 @@ int boardSetTwoD(Board *board, Piece *piece, const int y, const int x){
     boardSet(board, piece, getPos(y, x));
 }
 int boardSet(Board *board, Piece *piece, int pos){
+    //if(piece) printf("piece: %c, dest: %d\n", piece->name, pos);
     assert(piece==NULL || board->board[pos]==NULL);
     if(piece != NULL) piece->pos = pos; 
     else{
@@ -61,6 +66,10 @@ int getPos(int y, int x){
     assert(validTwoD(y,x));
     return y*8 + x;
 }
+int getInputPos(char *input){
+    int y = '8'-input[1], x = input[0] - 'a';
+    return getPos(y, x);
+}
 
 int validOneD(int pos){
     return pos>=0 && pos<64 ? 1 : 0;
@@ -68,6 +77,16 @@ int validOneD(int pos){
 
 int validTwoD(int y, int x){
     return (y<=7 && y>=0 && x<=7 && x>=0) ? 1 : 0;
+}
+//adds a move from an input string like "a7a5"
+int addInputMove(Board *board, char *input){
+    int pos = getInputPos(input);
+    int dest = getInputPos(input+2);
+    Piece *piece = board->board[pos];
+    if(!piece || getColor(piece) == getTurn(board)) return -1;
+    if(!piece->pieceFunction->canMove(piece, dest, board)) return -1;
+    MoveNode *move = piece->pieceFunction->genMove(piece, dest, board);
+    return addNode(board->currMove, move);
 }
 //currMove must have children nodes
 int moveForward(Board *board, int ind){
@@ -80,16 +99,17 @@ int moveForward(Board *board, int ind){
     const int *before = board->currMove->before;
     const int *after = board->currMove->after;
     while(board->currMove->pieceList[i]){
+        //printf("pieceList[i]: %c\n", board->currMove->pieceList[i]->name);
         if(before[i] != -1) boardSet(board, NULL, before[i]);
         i++;
     }
     i = 0;
     while(board->currMove->pieceList[i]){
-        printf("after: %d\n", after[0]);
         if(after[i] != -1) boardSet(board, board->currMove->pieceList[i], after[i]);
         i++;
     }
     board->currMove->pieceList[0]->moveCount++;
+    board->moveTotal++;
     return 1;
 }
 int moveBackward(Board *board){
@@ -110,6 +130,7 @@ int moveBackward(Board *board){
         i++;
     }
     board->currMove->pieceList[0]->moveCount--;
+    board->moveTotal--;
     board->currMove = board->currMove->prev;
     return 1;
 }
@@ -141,24 +162,18 @@ void initDisplay(Board *board){
 }
 void drawMove(Board *board, MoveNode* move){
     int pos=move->before[0], dest=move->after[0], i=1;
-    while(dest != -1) dest = move->after[i++];
+    //printf("dest:%d \n", dest);
+    while(dest == -1) dest = move->after[i++];
     assert(dest>-1 && dest<64);
     int xPos = pos&7, yPos = pos>>3;
-    char a = '#', b = '#', c = '#';
-    setDisplay(board, yPos, xPos, a, b, c);
+    setDisplay(board, yPos, xPos, 'o', 'o', 'o');
     int xDest = dest&7, yDest = dest>>3;
-    a = '*', b = '*', c = '*';
-    setDisplay(board, yDest, xDest, a, b, c);
-    if(!move->pieceList[0]->pieceFunction->movePattern->doesRep) return;
+    setDisplay(board, yDest, xDest, '[', ' ', ']');
+    if(move->pieceList[0]->name=='h' || move->pieceList[0]->name=='h') return;
     int x = (xDest-xPos), y = (yDest-yPos);
     if(x) x/=abs(xDest-xPos);
     if(y) y/=abs(yDest-yPos);
-    xPos += x;
-    yPos += y;
-    while(xPos != xDest && yPos != yDest){
-        a = '=', b = '=', c = '=';
-        setDisplay(board, yPos+=y, xPos+=x, a, b, c);
-    }
+    while(xPos+x != xDest || yPos+y != yDest) setDisplay(board, yPos+=y, xPos+=x, 'o', 'o', 'o');
 }
 
 
