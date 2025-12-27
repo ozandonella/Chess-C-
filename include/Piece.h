@@ -13,28 +13,23 @@ struct PieceFunction {
 };
 
 struct Piece {
-    PieceFunction *pieceFunction;
+    const MovePattern *movePattern;
     Piece **promotions;
     int pos;
     char name;
     int moveCount;
 }; 
 
-PieceFunction *getPieceFunction(char name);
-int canMovePawn(Piece *piece, int dest, Board *board);
-int canMoveRook(Piece *piece, int dest, Board *board);
-int canMoveHorse(Piece *piece, int dest, Board *board);
-int canMoveBishop(Piece *piece, int dest, Board *board);
-int canMoveQueen(Piece *piece, int dest, Board *board);
-int canMoveKing(Piece *piece, int dest, Board *board);
+const MovePattern *getPiecePattern(char name);
+int canMovePawn(Piece *piece, const int *pattern, int dest, Board *board);
+int canMoveKing(Piece *piece, const int *pattern, int dest, Board *board);
+int canMovePiece(Piece *piece, int dest, Board *board);
+MoveNode *genMovePiece(Piece *piece, int dest, Board *board);
 MoveNode *genMovePawn(Piece *piece, int dest, Board *board);
-MoveNode *genMoveRook(Piece *piece, int dest, Board *board);
-MoveNode *genMoveHorse(Piece *piece, int dest, Board *board);
-MoveNode *genMoveBishop(Piece *piece, int dest, Board *board);
-MoveNode *genMoveQueen(Piece *piece, int dest, Board *board);
 MoveNode *genMoveKing(Piece *piece, int dest, Board *board);
 int promotePawnMove(MoveNode* move, char name, Board* board);
 int checkForPromotion(MoveNode* move);
+int checkPawnCapture(Piece *pawn, const int *pattern, Board *board);
 MoveNode **genAllMoves(Piece *piece, Board *board);
 int matchPattern(Piece *piece, int dest);
 int canReach(Piece *piece, const int *pattern, int dest, Board* board);

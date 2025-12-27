@@ -84,8 +84,8 @@ int addInputMove(Board *board, char *input){
     int dest = getInputPos(input+2);
     Piece *piece = board->board[pos];
     if(!piece || getColor(piece) == getTurn(board)) return -1;
-    if(!piece->pieceFunction->canMove(piece, dest, board)) return -1;
-    MoveNode *move = piece->pieceFunction->genMove(piece, dest, board);
+    if(!canMovePiece(piece, dest, board)) return -1;
+    MoveNode *move = genMovePiece(piece, dest, board);
     return addNode(board->currMove, move);
 }
 //currMove must have children nodes
@@ -161,15 +161,15 @@ void initDisplay(Board *board){
     board->display[34*17] = '\0';
 }
 void drawMove(Board *board, MoveNode* move){
+    if(!move->pieceList[0]) return;
     int pos=move->before[0], dest=move->after[0], i=1;
-    //printf("dest:%d \n", dest);
     while(dest == -1) dest = move->after[i++];
     assert(dest>-1 && dest<64);
     int xPos = pos&7, yPos = pos>>3;
     setDisplay(board, yPos, xPos, 'o', 'o', 'o');
     int xDest = dest&7, yDest = dest>>3;
     setDisplay(board, yDest, xDest, '[', ' ', ']');
-    if(move->pieceList[0]->name=='h' || move->pieceList[0]->name=='h') return;
+    if(move->pieceList[0]->name=='h' || move->pieceList[0]->name=='H') return;
     int x = (xDest-xPos), y = (yDest-yPos);
     if(x) x/=abs(xDest-xPos);
     if(y) y/=abs(yDest-yPos);

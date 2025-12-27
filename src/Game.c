@@ -8,27 +8,27 @@
 #include "ArrayList.h"
 const char *inputString = "INPUT LIST\n"
 "move: [letter][number][letter][number]\n"
-"go forward: F\n"
-"go back: B\n"
-"end game: end\n";
+"forward: [F], back: [B], end: [end]\n";
 const char *promoteString = "CHOOSE PROMOTION\n";
 const char *cantMoveForwardString = "CANT MOVE FORWARD\n";
 const char *cantMoveBackString = "CANT MOVE BACK\n";
 const char *chooseForwardString = "CHOOSE PATH FORWARD\n";
 void addMove();
-Board *playGame();
+void playGame(Board *board);
 char *getInput();
 char *getPromoInput();
 int getForwardInput();
 int validateMove(char *m);
 void saveGame(Board *board, char *name);
-void playSaved(char *textFile);
+Board *playSaved(char *textFile);
 
 int main(){
-    char *fileName = "./saved/enpassant.txt";
+    char *fileName = "./saved/test.txt";
     //saveGame(playGame(), fileName);
-    playSaved(fileName);
-    //playGame();
+    playGame(playSaved("./saved/promotion.txt"));
+    //Board *board = createBoard();
+    //boardInit(board);
+    //playGame(board);
     return 1;
 }
 void saveGame(Board *board, char *name){
@@ -41,7 +41,7 @@ void saveGame(Board *board, char *name){
     }
     fclose(file);
 }
-void playSaved(char *textFile){
+Board *playSaved(char *textFile){
     FILE *file = fopen(textFile, "r");
     char move[6];
     Board *board = createBoard();
@@ -53,10 +53,9 @@ void playSaved(char *textFile){
         printf("%s\n", move); 
     }
     fclose(file);
+    return board;
 }
-Board *playGame(){
-    Board *board = createBoard();
-    boardInit(board);
+void playGame(Board *board){
     updateDisplay(board, 0);
     printDisplay(board);
     printf(inputString); 
@@ -87,24 +86,20 @@ Board *playGame(){
             }
             MoveNode *move = board->currMove->children->arr[ind];
             if(checkForPromotion(move)){
-                printf("flag\n");
                 int color = getColor(move->pieceList[0]);
-                char nameH = color == -1 ? 'H' : 'h';
-                char nameQ = color == -1 ? 'Q' : 'q';
-                printf("%s%c: 1\n%c: 2\n", promoteString, nameQ, nameH);
+                char nameH = color == -1 ? 'h' : 'H';
+                char nameQ = color == -1 ? 'q' : 'Q';
+                printf("%s%c: [1], %c: [2]\n", promoteString, nameQ, nameH);
                 char c = *getPromoInput();
                 promotePawnMove(move, c == '1' ? nameQ : nameH, board);
             }
             //incase i want to record the game
-            saveGame(board, "./saved/test.txt");
+            //saveGame(board, "./saved/promotion.txt");
             moveForward(board, ind);
         }
         updateDisplay(board, 1);
         printDisplay(board);
-        printf(inputString); 
     }
-    return board;
-        
     /*char* moveString = calloc(1, sizeof(char));
     int size = strlen(moveString);
     moveString = realloc(moveString, size + 5); 
@@ -135,9 +130,9 @@ char *getInput(){
     return NULL;
 }
 char *getPromoInput(){
-    char *input = calloc(2, sizeof(char));
+    char *input = calloc(3, sizeof(char));
     while(1){
-        fgets(input, 2, stdin);
+        fgets(input, 3, stdin);
         if(*input == '1' || *input == '2') return input;
         else puts("invalid input");
     }

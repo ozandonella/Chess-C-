@@ -1,0 +1,8 @@
+e2e3
+e7e6
+f1e2
+f8e7
+g1h3
+g8h6
+e1g1
+e8g8
