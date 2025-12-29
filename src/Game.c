@@ -25,10 +25,8 @@ Board *playSaved(char *textFile);
 int main(){
     char *fileName = "./saved/test.txt";
     //saveGame(playGame(), fileName);
-    playGame(playSaved("./saved/promotion.txt"));
-    //Board *board = createBoard();
-    //boardInit(board);
-    //playGame(board);
+    playGame(playSaved("./saved/test_check.txt"));
+    //playGame(NULL);
     return 1;
 }
 void saveGame(Board *board, char *name){
@@ -47,7 +45,12 @@ Board *playSaved(char *textFile){
     Board *board = createBoard();
     boardInit(board);
     while(fgets(move, sizeof(move), file)){
-        moveForward(board, addInputMove(board, move));
+        int ind = addInputMove(board, move);
+        if(ind == -1){
+            printf("%s invalid move\n", move);
+            continue;
+        }
+        moveForward(board, ind);
         updateDisplay(board, 1);
         printDisplay(board);
         printf("%s\n", move); 
@@ -56,6 +59,10 @@ Board *playSaved(char *textFile){
     return board;
 }
 void playGame(Board *board){
+    if(!board){
+        board = createBoard();
+        boardInit(board);
+    }
     updateDisplay(board, 0);
     printDisplay(board);
     printf(inputString); 
@@ -94,11 +101,12 @@ void playGame(Board *board){
                 promotePawnMove(move, c == '1' ? nameQ : nameH, board);
             }
             //incase i want to record the game
-            //saveGame(board, "./saved/promotion.txt");
+            //saveGame(board, "./saved/test.txt");
             moveForward(board, ind);
         }
         updateDisplay(board, 1);
         printDisplay(board);
+        printMoveTree(board->gameStart);
     }
     /*char* moveString = calloc(1, sizeof(char));
     int size = strlen(moveString);

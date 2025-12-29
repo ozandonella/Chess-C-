@@ -6,12 +6,6 @@ struct MovePattern {
     int moveCount;
     const int dists[10][2];
 };
-struct PieceFunction {
-    CanMove canMove;
-    GenMove genMove;
-    const MovePattern *movePattern;
-};
-
 struct Piece {
     const MovePattern *movePattern;
     Piece **promotions;

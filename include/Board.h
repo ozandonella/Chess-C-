@@ -14,6 +14,7 @@ struct Board {
 
 Board *createBoard(void);
 int getTurn(Board *board);
+int isCompromising(MoveNode *move, Board *board);
 int addInputMove(Board *board, char *input);
 int moveForward(Board *board, int ind);
 int moveBackward(Board *board);

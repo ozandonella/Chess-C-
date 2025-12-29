@@ -18,8 +18,11 @@ struct MoveTree {
 
 MoveNode *createMoveNode(void);
 MoveNode *createMoveTree(void);
+void printMoveTree(MoveNode *node);
+void printMoveRec(MoveNode *node, int depth, int needsSpace);
 void printMoveNode(MoveNode *node);
 int addNode(MoveNode *node, MoveNode *add);
+int removeChild(MoveNode *parent, int childInd);
 void addNodePiece(MoveNode *node, Piece *piece, int before, int after, int ind);
 void destroyNode(MoveNode *node); //asserts children is empty/null
 void destroyTree(MoveNode *node);

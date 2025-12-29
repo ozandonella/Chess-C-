@@ -86,8 +86,21 @@ int addInputMove(Board *board, char *input){
     if(!piece || getColor(piece) == getTurn(board)) return -1;
     if(!canMovePiece(piece, dest, board)) return -1;
     MoveNode *move = genMovePiece(piece, dest, board);
+    if(isCompromising(move, board)) return -1;
     return addNode(board->currMove, move);
 }
+//validates if a player's move puts them in check
+//assumes we can move forward on given move
+int isCompromising(MoveNode *move, Board *board){
+    assert(move);
+    moveForward(board, addNode(board->currMove, move));
+    int ret = isInCheck(getColor(move->pieceList[0]), board);
+    printf("ret %d\n", ret);
+    moveBackward(board);
+    removeChild(board->currMove, board->currMove->children->length-1);
+    return ret;
+}
+
 //currMove must have children nodes
 int moveForward(Board *board, int ind){
     assert(board->currMove);

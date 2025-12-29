@@ -80,7 +80,7 @@ int hasAttackers(int pos, int color, Board* board){
         Piece *piece = board->pieceList->arr[i];
         if(color == getColor(piece) && piece->pos != -1){
             int patInd = matchPattern(piece, pos);
-            if(patInd == -1) return 0;
+            if(patInd == -1) continue;
             const int *pattern = piece->movePattern->dists[patInd];
             if(canReach(piece, pattern, pos, board)){
                 if(piece->name == 'p'|| piece->name == 'P')
@@ -158,6 +158,7 @@ int checkPawnCapture(Piece *pawn, const int *pattern, Board *board){
         (capture->moveCount == 1);
 }
 
+//does not validate if move avoids check
 int canMovePiece(Piece *piece, int dest, Board *board){
     assert(piece);
     if(!validOneD(dest)) return 0;
@@ -167,7 +168,6 @@ int canMovePiece(Piece *piece, int dest, Board *board){
     if(piece->name == 'p' || piece->name == 'P') return canMovePawn(piece, pattern, dest, board);
     if(piece->name == 'k' || piece->name == 'K') return canMoveKing(piece, pattern, dest, board);
     if(!canReach(piece, pattern, dest, board)) return 0; 
-    //generate move and find out if in ceck
     return 1;
 }
 //assumes pattern is patternMatched and canReach

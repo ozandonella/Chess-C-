@@ -13,6 +13,7 @@ struct ArrayList{
 ArrayList *createArrayList(void);
 void destroyArrayList(ArrayList *list, int destroyContents);
 int listAdd(ArrayList *list, void *item);
+void *listRemove(ArrayList *list, int ind);
 int listContains(ArrayList *list, void *item);
 
 #endif

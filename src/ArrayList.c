@@ -27,7 +27,14 @@ void destroyArrayList(ArrayList *list, int destroyContents){
     list->compareItem = NULL;
     free(list);
 }
-
+void *listRemove(ArrayList *list, int ind){
+    assert(list->arr && ind<list->length);
+    void *item = list->arr[ind];
+    for(int i=ind+1; i<list->length; i++) list->arr[i-1] = list->arr[i];
+    list->arr[list->length-1] = NULL;
+    list->length--;
+    return item;
+}
 
 int listAdd(ArrayList *list, void *item){
     if(list->length == list->capacity){

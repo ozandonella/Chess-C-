@@ -10,6 +10,23 @@ MoveNode *createMoveNode(){
     node->pieceList = calloc(4, sizeof(Piece*));
     return node;
 }
+void printMoveTree(MoveNode *node){
+    printMoveRec(node, 0, 0);
+}
+void printMoveRec(MoveNode *node, int depth, int needsSpace){
+    if(needsSpace){
+        int temp = depth;
+        while(temp--) printf("        ");
+    }
+    printf("[%s]", node->name);
+    if(!node->children || !node->children->length) printf("\n");
+    else{
+        printf(", ");
+        printMoveRec(node->children->arr[0], depth+1, 0);
+        for(int i=1; i<node->children->length; i++) printMoveRec(node->children->arr[i], depth+1, 1);
+    }
+}
+
 void printMoveNode(MoveNode *node){
     assert(node != NULL);
     printf("[%s]",node->name);
@@ -20,6 +37,12 @@ int addNode(MoveNode *node, MoveNode *add){
     listAdd(node->children, add);
     add->prev = node;
     return node->children->length-1;
+}
+int removeChild(MoveNode *parent, int childInd){
+    assert(parent->children && parent->children->length>childInd);
+    ((MoveNode *)(parent->children->arr[childInd]))->prev = NULL;
+    listRemove(parent->children, childInd);
+    return parent->children->length;
 }
 //asserts children is empty/null
 void destroyNode(MoveNode *node){
