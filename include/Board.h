@@ -14,6 +14,10 @@ struct Board {
 
 Board *createBoard(void);
 int getTurn(Board *board);
+void printState(Board *board);
+GameState getGameState(Board *board);
+MoveNode** genAllPlayerMoves(Board *board, int color);
+int hasMoves(Board *board, int color);
 int isCompromising(MoveNode *move, Board *board);
 int addInputMove(Board *board, char *input);
 int moveForward(Board *board, int ind);

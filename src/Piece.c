@@ -6,7 +6,7 @@
 #include "Piece.h"
 #include "ArrayList.h"
 #include "Comparator.h"
-#include "MoveTree.h"
+#include "MoveNode.h"
 
 static const char *pieceNames = "rhbqkpRHBQKP";
 static const MovePattern movePatterns[6] =  {
@@ -83,11 +83,13 @@ int hasAttackers(int pos, int color, Board* board){
             if(patInd == -1) continue;
             const int *pattern = piece->movePattern->dists[patInd];
             if(canReach(piece, pattern, pos, board)){
-                if(piece->name == 'p'|| piece->name == 'P')
-                    return getColor(piece)*pattern[0] < 0 && pattern[1] != 0;
-                if(piece->name != 'k' && piece->name != 'K')
-                    return abs(pattern[1])==1;
-                return 1;
+                if(piece->name == 'p'|| piece->name == 'P'){
+                    if(getColor(piece)*pattern[0] < 0 && pattern[1] != 0) return 1;
+                }
+                else if(piece->name == 'k' || piece->name == 'K'){
+                    if(abs(pattern[1])==1) return 1;
+                }
+                else return 1;
             }
         }
     }
@@ -152,7 +154,7 @@ int checkPawnCapture(Piece *pawn, const int *pattern, Board *board){
     Piece *capture = board->board[pawn->pos + pattern[0]*8 + pattern[1]];
     if(capture) return getColor(capture) != getColor(pawn);
     capture = board->board[pawn->pos + pattern[1]];
-    return (capture->name == 'p' || capture->name == 'P') &&
+    return capture && (capture->name == 'p' || capture->name == 'P') &&
         (getColor(capture) != getColor(pawn)) &&
         (capture == board->currMove->pieceList[0]) &&
         (capture->moveCount == 1);
@@ -184,7 +186,7 @@ int canMoveKing(Piece *piece, const int *pattern, int dest, Board *board){
     assert(piece->name == 'k' || piece->name == 'K');
     if(abs(pattern[1]) > 1){
         Piece *rook = board->board[dest + (pattern[1]<0 ? -2 : +1)];
-        if(piece->moveCount || !board->board[rook->pos] || rook->moveCount) return 0;
+        if(piece->moveCount || !rook || rook->moveCount) return 0;
         int inc = pattern[1]>>1, tempPos = piece->pos, tempDest = dest;
         if(hasAttackers(piece->pos, -getColor(piece), board) || board->board[rook->pos-inc]) return 0;
         while(tempPos != tempDest){
@@ -246,13 +248,14 @@ MoveNode *genMovePiece(Piece *piece, int dest, Board *board){
     return move;
 }
 
-//generates all moves for piece and returns them
-MoveNode **genAllMoves(Piece *piece, Board *board){
+//generates all moves for piece (size of 30) and returns them
+MoveNode **genAllPieceMoves(Piece *piece, Board *board){
     assert(piece->pos != -1);
     int ind = 0;
     MoveNode **moves = calloc(30, sizeof(MoveNode*)); 
     //Testing
     for(int i=0; i<63; i++) if(canMovePiece(piece, i, board)) moves[ind++] = genMovePiece(piece, i, board);
+
     //Testing
     /*
     const MovePattern* movePattern = piece->movePattern;

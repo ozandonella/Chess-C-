@@ -1,5 +1,5 @@
-#ifndef MOVETREE_H
-#define MOVETREE_H
+#ifndef MOVENODE_H
+#define MOVENODE_H
 #include "def.h"
 
 struct MoveNode {
@@ -12,12 +12,9 @@ struct MoveNode {
     int after[3];
 };
 
-struct MoveTree {
-    MoveNode *head;
-};
-
 MoveNode *createMoveNode(void);
 MoveNode *createMoveTree(void);
+int countNodes(MoveNode *node);
 void printMoveTree(MoveNode *node);
 void printMoveRec(MoveNode *node, int depth, int needsSpace);
 void printMoveNode(MoveNode *node);

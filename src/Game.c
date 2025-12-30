@@ -4,7 +4,8 @@
 #include <string.h>
 #include "Board.h"
 #include "Piece.h"
-#include "MoveTree.h"
+#include "Bot.h"
+#include "MoveNode.h"
 #include "ArrayList.h"
 const char *inputString = "INPUT LIST\n"
 "move: [letter][number][letter][number]\n"
@@ -14,6 +15,7 @@ const char *cantMoveForwardString = "CANT MOVE FORWARD\n";
 const char *cantMoveBackString = "CANT MOVE BACK\n";
 const char *chooseForwardString = "CHOOSE PATH FORWARD\n";
 void addMove();
+void testPerft(void);
 void playGame(Board *board);
 char *getInput();
 char *getPromoInput();
@@ -25,10 +27,22 @@ Board *playSaved(char *textFile);
 int main(){
     char *fileName = "./saved/test.txt";
     //saveGame(playGame(), fileName);
-    playGame(playSaved("./saved/test_check.txt"));
+    //playGame(playSaved("./saved/carlsen_vs_ernst.txt"));
     //playGame(NULL);
+    testPerft();
     return 1;
 }
+//big MemoryLeek
+void testPerft(void){
+    int depths[] = {1, 20, 400, 8902, 197281, 4865609};
+    for(int i=0; i<6; i++){
+        Board *board = createBoard();
+        boardInit(board);
+        generateDepth(board, i);
+        printf("count: %d actual: %d\n", countNodes(board->currMove), depths[i]);
+    }
+}
+
 void saveGame(Board *board, char *name){
     assert(board->gameStart);
     FILE *file = fopen(name, "w");
@@ -47,13 +61,16 @@ Board *playSaved(char *textFile){
     while(fgets(move, sizeof(move), file)){
         int ind = addInputMove(board, move);
         if(ind == -1){
-            printf("%s invalid move\n", move);
+            printf("%s(invalid move)\n\n", move);
             continue;
         }
         moveForward(board, ind);
         updateDisplay(board, 1);
         printDisplay(board);
-        printf("%s\n", move); 
+        printf("%s", move); 
+        board->state = getGameState(board);
+        printState(board);
+        printf("\n"); 
     }
     fclose(file);
     return board;
@@ -106,6 +123,8 @@ void playGame(Board *board){
         }
         updateDisplay(board, 1);
         printDisplay(board);
+        board->state = getGameState(board);
+        printState(board);
         printMoveTree(board->gameStart);
     }
     /*char* moveString = calloc(1, sizeof(char));

@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "ArrayList.h"
-#include "MoveTree.h"
+#include "MoveNode.h"
 #include "Board.h"
 #include "Piece.h"
 
@@ -32,7 +32,7 @@ Board *createBoard(void){
 //[4,5,6]
 //[7,8,9]
 int getTurn(Board *board){
-    return (board->moveTotal&1) == 0 ? -1 : 1;
+    return (board->moveTotal&1) == 0 ? 1 : -1;
 }
 
 //Sets position on board to specified piece
@@ -83,11 +83,35 @@ int addInputMove(Board *board, char *input){
     int pos = getInputPos(input);
     int dest = getInputPos(input+2);
     Piece *piece = board->board[pos];
-    if(!piece || getColor(piece) == getTurn(board)) return -1;
+    if(!piece || getColor(piece) != getTurn(board)) return -1;
     if(!canMovePiece(piece, dest, board)) return -1;
     MoveNode *move = genMovePiece(piece, dest, board);
     if(isCompromising(move, board)) return -1;
     return addNode(board->currMove, move);
+}
+GameState getGameState(Board *board){
+    int canMove = hasMoves(board, getTurn(board));
+    if(isInCheck(getTurn(board), board)){
+        return canMove ? CHECK : CHECKMATE;
+    }
+    else return canMove ? FREE : STALE;
+}
+void printState(Board *board){
+    printf("GAMESTATE: ");
+    switch(board->state){
+        case FREE: 
+            printf("FREE\n");
+            break;
+        case CHECK: 
+            printf("CHECK\n");
+            break;
+        case STALE: 
+            printf("STALEMATE\n");
+            break;
+        case CHECKMATE: 
+            printf("CHECKMATE\n");
+            break;
+    }
 }
 //validates if a player's move puts them in check
 //assumes we can move forward on given move
@@ -95,12 +119,38 @@ int isCompromising(MoveNode *move, Board *board){
     assert(move);
     moveForward(board, addNode(board->currMove, move));
     int ret = isInCheck(getColor(move->pieceList[0]), board);
-    printf("ret %d\n", ret);
     moveBackward(board);
     removeChild(board->currMove, board->currMove->children->length-1);
     return ret;
 }
 
+int hasMoves(Board *board, int color){
+    MoveNode **moves = genAllPlayerMoves(board, color);
+    int ret = moves[0] ? 1 : 0, ind = 0;
+    while(moves[ind]) destroyNode(moves[ind++]);
+    free(moves);
+    return ret;
+}
+//ALLOCATES MEMORY
+MoveNode** genAllPlayerMoves(Board *board, int color){
+    MoveNode **moves = calloc(16, 30*sizeof(MoveNode*));
+    int ind = 0;
+    for(int i=0; i<board->pieceList->length; i++){
+        Piece *piece = board->pieceList->arr[i];
+        if(getColor(piece) == color && piece->pos != -1){
+            MoveNode **pieceMoves = genAllPieceMoves(piece, board);
+            int x = 0;
+            while(pieceMoves[x]){
+                //printf("piece: %c before: %d after: %d\n", pieceMoves[x]->pieceList[0]->name, pieceMoves[x]->before[0], pieceMoves[x]->after[0]);
+                if(!isCompromising(pieceMoves[x], board)) moves[ind++] = pieceMoves[x];
+                pieceMoves[x++];
+            }
+            free(pieceMoves);
+        }
+    }
+    return moves;
+}
+            
 //currMove must have children nodes
 int moveForward(Board *board, int ind){
     assert(board->currMove);

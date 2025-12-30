@@ -1,5 +1,5 @@
 #include "Piece.h"
-#include "MoveTree.h"
+#include "MoveNode.h"
 #include "ArrayList.h"
 /*int compareMoves(void *a, void* b){
     MoveNode *nodeA = (MoveNode*)a;

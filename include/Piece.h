@@ -24,7 +24,7 @@ MoveNode *genMoveKing(Piece *piece, int dest, Board *board);
 int promotePawnMove(MoveNode* move, char name, Board* board);
 int checkForPromotion(MoveNode* move);
 int checkPawnCapture(Piece *pawn, const int *pattern, Board *board);
-MoveNode **genAllMoves(Piece *piece, Board *board);
+MoveNode **genAllPieceMoves(Piece *piece, Board *board);
 int matchPattern(Piece *piece, int dest);
 int canReach(Piece *piece, const int *pattern, int dest, Board* board);
 int hasAttackers(int pos, int color, Board* board);
