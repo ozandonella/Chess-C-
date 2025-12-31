@@ -32,6 +32,5 @@ int isInCheck(int color, Board* board);
 int getColor(Piece *piece);
 void printPieceArray(ArrayList *list);
 Piece *createPiece(char name);
-ArrayList *createPieces(const char *names);
 int isValidName(char name);
 #endif

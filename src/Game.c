@@ -28,18 +28,23 @@ int main(){
     char *fileName = "./saved/test.txt";
     //saveGame(playGame(), fileName);
     //playGame(playSaved("./saved/carlsen_vs_ernst.txt"));
-    //playGame(NULL);
+    Board *board = createBoard();
+    boardInit(board, startFen);
+    //playGame(board);
+    //generateDepth(board, 1);
+    //perftDivide(board->currMove);
     testPerft();
     return 1;
 }
 //big MemoryLeek
 void testPerft(void){
-    int depths[] = {1, 20, 400, 8902, 197281, 4865609};
+    int depths[] = {1, 20, 400, 8902, 197281, 4865609, 119060324};
     for(int i=0; i<6; i++){
         Board *board = createBoard();
-        boardInit(board);
+        boardInit(board, startFen);
         generateDepth(board, i);
-        printf("count: %d actual: %d\n", countNodes(board->currMove), depths[i]);
+        printf("count: %d actual: %d\n", perftCount(board->currMove), depths[i]);
+        if(i>0) perftDivide(board->gameStart);
     }
 }
 
@@ -57,7 +62,7 @@ Board *playSaved(char *textFile){
     FILE *file = fopen(textFile, "r");
     char move[6];
     Board *board = createBoard();
-    boardInit(board);
+    boardInit(board, startFen);
     while(fgets(move, sizeof(move), file)){
         int ind = addInputMove(board, move);
         if(ind == -1){
@@ -78,7 +83,7 @@ Board *playSaved(char *textFile){
 void playGame(Board *board){
     if(!board){
         board = createBoard();
-        boardInit(board);
+        boardInit(board, startFen);
     }
     updateDisplay(board, 0);
     printDisplay(board);
@@ -118,7 +123,7 @@ void playGame(Board *board){
                 promotePawnMove(move, c == '1' ? nameQ : nameH, board);
             }
             //incase i want to record the game
-            //saveGame(board, "./saved/test.txt");
+            saveGame(board, "./saved/bug.txt");
             moveForward(board, ind);
         }
         updateDisplay(board, 1);

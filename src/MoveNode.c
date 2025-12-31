@@ -10,13 +10,6 @@ MoveNode *createMoveNode(){
     node->pieceList = calloc(4, sizeof(Piece*));
     return node;
 }
-int countNodes(MoveNode *node){
-    assert(node);
-    int total = 0;
-    if(!node->children) return 1;
-    for(int i=0; i<node->children->length; i++) total += countNodes((MoveNode *)node->children->arr[i]);
-    return total;
-}
 void printMoveTree(MoveNode *node){
     printMoveRec(node, 0, 0);
 }

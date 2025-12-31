@@ -30,17 +30,6 @@ int getColor(Piece *piece){
     assert(piece!=NULL);
     return piece->name<'a' ? 1 : -1;
 }
-ArrayList *createPieces(const char *names){
-    ArrayList *list = createArrayList();
-    list->compareItem = comparePiece;
-    list->print = printPieceArray;
-    for(int ind=0; names[ind]; ind++){
-        if(isValidName(names[ind])){
-            listAdd(list, createPiece(names[ind]));
-        }
-    }
-    return list;
-}
 void printPieceArray(ArrayList *list){
     printf("[");
     for(int ind=0; ind<list->length; ind++){
@@ -254,24 +243,27 @@ MoveNode **genAllPieceMoves(Piece *piece, Board *board){
     int ind = 0;
     MoveNode **moves = calloc(30, sizeof(MoveNode*)); 
     //Testing
-    for(int i=0; i<63; i++) if(canMovePiece(piece, i, board)) moves[ind++] = genMovePiece(piece, i, board);
+    //for(int i=0; i<64; i++) if(canMovePiece(piece, i, board)) moves[ind++] = genMovePiece(piece, i, board);
 
     //Testing
-    /*
     const MovePattern* movePattern = piece->movePattern;
     for(int i=0; i<movePattern->moveCount; i++){
-        int dist = 8*movePattern->dists[i][0] + movePattern->dists[i][1];
-        int dest = piece->pos + dist;
-        if(canMove(piece, dest, board)){
-            moves[ind++] = genMove(piece, dest, board);
-            if(movePattern->doesRep){
-                dest+=dist;
-                while(canMove(piece, dest, board))
-                    moves[ind++] = genMove(piece, dest+=dist, board);
+        int destx=piece->pos&7, desty=piece->pos>>3;
+        const int *dist = movePattern->dists[i];
+        desty+=dist[0];
+        destx+=dist[1];
+        if(!validTwoD(desty, destx)) continue;
+        int dest = getPos(desty, destx);
+        if(canMovePiece(piece, dest, board)){
+            moves[ind++] = genMovePiece(piece, dest, board);
+            if(movePattern->doesRep){ 
+                while(validTwoD(desty+=dist[0], destx+=dist[1])){
+                    dest = getPos(desty, destx);
+                    if(canMovePiece(piece, dest, board)) moves[ind++] = genMovePiece(piece, dest, board);
+                }
             }
         }
     }
-    */
     //If generating pawn moves modify any existing promotion moves to queen and add horse
     if(piece->name == 'p' || piece->name == 'P'){
         for(int i=0; moves[i]; i++){

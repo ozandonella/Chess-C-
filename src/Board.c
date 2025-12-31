@@ -6,13 +6,8 @@
 #include "MoveNode.h"
 #include "Board.h"
 #include "Piece.h"
-
-static const char pieceStr[] = {
-    'r', 'h', 'b', 'q', 'k', 'b', 'h', 'r', 
-    'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p',
-    'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P',
-    'R', 'H', 'B', 'Q', 'K', 'B', 'H', 'R'
-};
+#include "Comparator.h"
+char startFen[44] = "rhbqkbhr/pppppppp/8/8/8/8/PPPPPPPP/RHBQKBHR";
 
 Board *createBoard(void){
     Board *board = malloc(sizeof(Board));
@@ -54,12 +49,27 @@ int boardSet(Board *board, Piece *piece, int pos){
     return 0;
 }
 
-void boardInit(Board *board){
-    board->pieceList = createPieces(pieceStr);
-    for(int ind=0; ind<32; ind++){
-        if(ind<16) boardSet(board, board->pieceList->arr[ind], ind);
-        else  boardSet(board, board->pieceList->arr[ind], ind+32);
+int boardInit(Board *board, char *fenStr){
+    assert(!board->pieceList);
+    board->pieceList = createArrayList();
+    board->pieceList->compareItem = comparePiece;
+    board->pieceList->print = printPieceArray;
+    int len=strlen(fenStr), totalSquares=0;
+    for(int i=0; i<len; i++){
+        char c = fenStr[i];
+        if(c!='/'){
+            if(c>'0' && c<='9') totalSquares += (c-'1');
+            else if((c>'a' && c<'s') || (c>'A' && c<'S')){
+                Piece *piece = createPiece(c);
+                listAdd(board->pieceList, piece);
+                boardSet(board, piece, totalSquares);
+            }
+            else return 0;
+            totalSquares++;
+        }
     }
+    assert(totalSquares == 64);
+    return 1;
 }
 //converts y,x into pos index for a one dim board array
 int getPos(int y, int x){

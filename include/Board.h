@@ -2,6 +2,8 @@
 #define BOARD_H
 #include "def.h"
 
+extern char startFen[44];
+
 struct Board {
    Piece **board;
    ArrayList *pieceList;
@@ -24,7 +26,7 @@ int moveForward(Board *board, int ind);
 int moveBackward(Board *board);
 int boardSetTwoD(Board *board, Piece *piece, const int x, const int y);
 int boardSet(Board *board, Piece *piece, int pos);
-void boardInit(Board *board);
+int boardInit(Board *board, char *fenStr);
 void boardPrint(Board *board);
 int getDisplayPos(int y, int x);
 int getPos(int y, int x);

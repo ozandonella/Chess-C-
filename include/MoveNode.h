@@ -14,7 +14,6 @@ struct MoveNode {
 
 MoveNode *createMoveNode(void);
 MoveNode *createMoveTree(void);
-int countNodes(MoveNode *node);
 void printMoveTree(MoveNode *node);
 void printMoveRec(MoveNode *node, int depth, int needsSpace);
 void printMoveNode(MoveNode *node);
