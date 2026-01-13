@@ -12,9 +12,11 @@ struct Piece {
     int pos;
     char name;
     int moveCount;
+    int value;
 }; 
 
 const MovePattern *getPiecePattern(char name);
+int getPieceValue(char name);
 int canMovePawn(Piece *piece, const int *pattern, int dest, Board *board);
 int canMoveKing(Piece *piece, const int *pattern, int dest, Board *board);
 int canMovePiece(Piece *piece, int dest, Board *board);

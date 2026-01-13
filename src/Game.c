@@ -27,24 +27,22 @@ Board *playSaved(char *textFile);
 int main(){
     char *fileName = "./saved/test.txt";
     //saveGame(playGame(), fileName);
-    //playGame(playSaved("./saved/carlsen_vs_ernst.txt"));
-    Board *board = createBoard();
-    boardInit(board, startFen);
+    //Board *board = createBoard();
+    Board *board = playSaved("./saved/carlsen_vs_ernst.txt");
+    //boardInit(board, startFen);
     //playGame(board);
     //generateDepth(board, 1);
     //perftDivide(board->currMove);
-    testPerft();
     return 1;
 }
-//big MemoryLeek
+//big MemoryLeak
 void testPerft(void){
     int depths[] = {1, 20, 400, 8902, 197281, 4865609, 119060324};
-    for(int i=0; i<6; i++){
+    for(int i=0; i<7; i++){
         Board *board = createBoard();
         boardInit(board, startFen);
         generateDepth(board, i);
         printf("count: %d actual: %d\n", perftCount(board->currMove), depths[i]);
-        if(i>0) perftDivide(board->gameStart);
     }
 }
 
@@ -76,6 +74,7 @@ Board *playSaved(char *textFile){
         board->state = getGameState(board);
         printState(board);
         printf("\n"); 
+        printf("eval: %d\n", evaluateBoard(board));
     }
     fclose(file);
     return board;

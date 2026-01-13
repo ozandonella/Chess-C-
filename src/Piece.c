@@ -23,6 +23,7 @@ Piece *createPiece(char name){
     piece->pos = -1;
     piece->moveCount = 0;
     piece->movePattern = getPiecePattern(piece->name); 
+    piece->value = getPieceValue(piece->name);
     piece->promotions = (name == 'p' || name =='P') ? calloc(3, sizeof(Piece*)) : NULL;
     return piece;
 }
@@ -43,6 +44,19 @@ int isValidName(char name){
     int ind = 0;
     while(pieceNames[ind]) if(pieceNames[ind++] == name) return 1;
     return 0;
+}
+int getPieceValue(char name){
+    int color = 1; 
+    if(name > 'R'){
+        name = (char) name-32;
+        color = -1;
+    }
+    switch(name){
+        case 'P': return color*10;
+        case 'R': return color*50;
+        case 'Q': return color*90;
+    }
+    return color*30;
 }
 const MovePattern *getPiecePattern(char name){
     if(name > 'R') name = (char) name-32;

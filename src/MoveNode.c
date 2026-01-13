@@ -26,6 +26,13 @@ void printMoveRec(MoveNode *node, int depth, int needsSpace){
         for(int i=1; i<node->children->length; i++) printMoveRec(node->children->arr[i], depth+1, 1);
     }
 }
+void deleteTree(MoveNode *node){
+    assert(node);
+    if(node->children){
+       for(int i=0; i<node->children->length; i++) deleteTree((MoveNode *)node->children->arr[i]);
+    }
+    destroyNode(node);
+}
 
 void printMoveNode(MoveNode *node){
     assert(node != NULL);
